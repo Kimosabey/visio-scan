@@ -1,6 +1,19 @@
 const base =
   (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') ?? ''
 
+export type HealthResponse = {
+  status: string
+  service: string
+  port: number
+  references_dir: string
+}
+
+export async function getHealth(): Promise<HealthResponse> {
+  const res = await fetch(`${base}/health`)
+  if (!res.ok) throw new Error(`Health ${res.status}`)
+  return res.json() as Promise<HealthResponse>
+}
+
 export type Discrepancy = {
   code: string
   severity: string
