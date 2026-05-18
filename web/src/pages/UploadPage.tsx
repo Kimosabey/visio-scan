@@ -34,6 +34,15 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+const REFERENCE_PRESETS: { label: string; reference_label: string }[] = [
+  { label: 'SOP figure', reference_label: 'SOP-HVAC-114 Fig A-12 nameplate layout (rev 4)' },
+  { label: 'Wiring diagram', reference_label: 'Single-line LVM-2024-009 Panel L14 feeder (as-built 2023-08)' },
+  { label: 'Nameplate spec', reference_label: 'OEM nameplate model XR-200 nominal FLA 42 A' },
+  { label: 'Commissioning photo', reference_label: 'Cx photo set CT-07 strainer basket orientation' },
+  { label: 'Arc flash label', reference_label: 'NFPA 70E arc-flash label Cat 2 @ 18 in working distance' },
+  { label: 'Label not listed', reference_label: 'Field photo — corroded lug kit; compare to golden template' },
+]
+
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -133,6 +142,23 @@ export function UploadPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reference_label">Reference label (optional)</Label>
+                  <p className="text-xs text-zinc-500">
+                    What to compare against (feeds the vision prompt). Try a preset:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {REFERENCE_PRESETS.map((ex) => (
+                      <Button
+                        key={ex.label}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-auto max-w-full whitespace-normal py-1.5 text-left text-xs font-normal"
+                        onClick={() => form.setValue('reference_label', ex.reference_label)}
+                      >
+                        {ex.label}
+                      </Button>
+                    ))}
+                  </div>
                   <Input
                     id="reference_label"
                     placeholder="e.g. SOP Fig A-12 / wiring diagram rev 4"

@@ -1,58 +1,88 @@
 # VisioScan
 
-Multimodal RAG — field images (and PDF exports) vs reference workflow; optional **Ollama vision** when `OLLAMA_BASE_URL` is set.
-
-**GitHub:** [Kimosabey/visio-scan](https://github.com/Kimosabey/visio-scan)
-
-```bash
-git clone git@github.com:Kimosabey/visio-scan.git
-```
-
-Uses your existing `~/.ssh/config` for GitHub.
+**Vision / multimodal** — upload an **image** (or exported **PDF** page as an image workflow) via **multipart** `POST /v1/analyze`. The API returns a **summary**, **discrepancy** rows (stub), and optional **`vision_notes`** when **`OLLAMA_BASE_URL`** is set and `content-type` is `image/*` (calls Ollama **`/api/generate`** with **base64 image** and `VISION_MODEL`). The **web** UI shows **reference** placeholder panel, **field** preview, and analysis + discrepancy list.
 
 | | |
 |--|--|
-| **API port** | `8105` (override with `PORT`) |
-| **OpenAPI** | `/docs` |
+| **GitHub** | [Kimosabey/visio-scan](https://github.com/Kimosabey/visio-scan) |
+| **Clone** | `git clone git@github.com:Kimosabey/visio-scan.git` |
+| **Default API port** | `8105` |
+| **Stack** | FastAPI · **python-multipart** · httpx · **web:** Vite · React 19 · TS · Tailwind 4 · TanStack Query · RHF · Zod · Sonner · Lucide |
 | **Roadmap** | [docs/PLAN.md](docs/PLAN.md) |
-| **UI rules** | [docs/UI.md](docs/UI.md) |
+| **UI / UX** | [docs/UI.md](docs/UI.md) |
 
-## API
+---
 
-- `GET /health`
-- `POST /v1/analyze` — `multipart/form-data`: `file` (required), optional `reference_label`; returns summary, discrepancy list, optional `vision_notes`
+## Repository layout
 
-### Environment
+```
+visio-scan/
+├── app/main.py              # multipart /v1/analyze, optional vision LLM
+├── web/
+│   ├── src/pages/UploadPage.tsx
+│   └── README.md
+├── docs/
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .env.example
+└── README.md
+```
 
-| Variable | Purpose |
-|----------|---------|
+---
+
+## Features
+
+### API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Liveness |
+| `POST` | `/v1/analyze` | `multipart/form-data`: **`file`** (required), **`reference_label`** (optional). Returns `request_id`, `filename`, `content_type`, `summary`, `discrepancies[]` (`code`, `severity`, `field`, `detail`), optional `vision_notes`, `disclaimer` |
+
+Non-image uploads still return stub structured output; vision path is for `image/*`.
+
+### Web UI
+
+- File picker (`accept` includes images + `.pdf` — PDF analysis may require server-side rasterization in a later phase).
+- Optional reference label for the vision prompt.
+- Side-by-side **reference stub** vs **field preview** (object URL).
+- Results: summary, vision panel, discrepancies.
+
+---
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
 | `PORT` | Default `8105` |
-| `OLLAMA_BASE_URL` | Optional vision + generate |
-| `VISION_MODEL` | e.g. `llama3.2-vision` |
+| `OLLAMA_BASE_URL` | Optional Ollama |
+| `VISION_MODEL` | Default e.g. `llama3.2-vision` |
 | `CORS_ORIGINS` | Comma-separated allowed origins |
+
+**Web:** `VITE_API_BASE` — optional.
 
 See [.env.example](.env.example).
 
-### Local (API only)
+---
+
+## Run locally
+
+From the **repository root** (folder that contains `app/`), not inside `app/`.
+
+**Windows:** `.\run-dev.ps1` or `run-dev.bat`.
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8105
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8105
+
+cd web && npm install && npm run dev
 ```
 
-## Web UI (`web/`)
+Vite proxies to **8105**.
 
-Upload, reference vs field compare layout, analysis + discrepancies. Dev proxy → **8105**.
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
-[web/README.md](web/README.md)
+---
 
 ## Docker
 
@@ -60,4 +90,25 @@ npm run dev
 docker compose up --build
 ```
 
-- [http://localhost:8105](http://localhost:8105), [http://localhost:8105/health](http://localhost:8105/health), [http://localhost:8105/docs](http://localhost:8105/docs)
+---
+
+## `web/` scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Dev server |
+| `npm run build` | Typecheck + bundle |
+| `npm run preview` | Preview |
+| `npm run lint` | ESLint |
+
+---
+
+## Ollama vision
+
+Ensure your model is pulled on the Ollama host (e.g. `llama3.2-vision`). The API sends JSON `{ "model", "prompt", "images": [base64], "stream": false }` to `/api/generate`.
+
+---
+
+## License
+
+Proprietary — Graylinx / SelfAware® unless otherwise stated.
