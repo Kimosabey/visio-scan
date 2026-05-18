@@ -1,31 +1,44 @@
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 import { cn } from '@/lib/utils'
 
-/** Aceternity-style subtle grid + fade (light theme). */
+/* === Light Studio — signature visuals === */
+
 export function GridBackground({ className }: { className?: string }) {
   return (
     <div
-      className={cn(
-        'pointer-events-none absolute inset-0 -z-10 overflow-hidden',
-        className,
-      )}
+      aria-hidden
+      className={cn('pointer-events-none absolute inset-0 -z-10 overflow-hidden', className)}
     >
+      {/* Soft film grain dots */}
       <div
-        className="absolute inset-0 opacity-[0.35]"
+        className="absolute inset-0 opacity-[0.55]"
         style={{
-          backgroundImage: `linear-gradient(to right, rgb(228 228 231 / 0.7) 1px, transparent 1px),
-            linear-gradient(to bottom, rgb(228 228 231 / 0.7) 1px, transparent 1px)`,
-          backgroundSize: '48px 48px',
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(28,25,23,0.05) 1px, transparent 0)",
+          backgroundSize: '14px 14px',
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-50 via-zinc-50/90 to-zinc-100/80" />
+      {/* Lens flare */}
+      <div
+        className="absolute -right-32 -top-16 size-[28rem] rounded-full opacity-30"
+        style={{
+          background:
+            'radial-gradient(circle, rgba(190,24,93,0.18), rgba(190,24,93,0.04) 40%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute -left-24 bottom-0 size-[22rem] rounded-full opacity-25"
+        style={{
+          background:
+            'radial-gradient(circle, rgba(180,83,9,0.15), rgba(180,83,9,0.03) 40%, transparent 70%)',
+        }}
+      />
     </div>
   )
 }
 
-/** Soft moving gradient border (inspired by Aceternity moving-border). */
 export function MovingBorder({
   children,
   className,
@@ -34,22 +47,17 @@ export function MovingBorder({
   className?: string
 }) {
   return (
-    <div className={cn('relative overflow-hidden rounded-xl p-px', className)}>
-      <motion.div
-        className="absolute -inset-[120%] z-0 opacity-70"
-        style={{
-          background:
-            'conic-gradient(from 0deg, transparent, rgb(37 99 235 / 0.55), rgb(99 102 241 / 0.5), transparent 120deg)',
-        }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+    <div className={cn('relative overflow-hidden rounded-2xl studio-card', className)}>
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-0.5"
+        style={{ background: 'linear-gradient(to right, transparent, var(--color-rose), transparent)' }}
       />
-      <div className="relative z-10 rounded-[11px] bg-white">{children}</div>
+      <div className="relative">{children}</div>
     </div>
   )
 }
 
-/** Mouse-follow spotlight (simplified Aceternity spotlight). */
 export function SpotlightHero({
   children,
   className,
@@ -57,31 +65,54 @@ export function SpotlightHero({
   children: React.ReactNode
   className?: string
 }) {
-  const ref = React.useRef<HTMLDivElement>(null)
-  const [pos, setPos] = React.useState({ x: 50, y: 0 })
-
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (!ref.current) return
-    const r = ref.current.getBoundingClientRect()
-    setPos({
-      x: ((e.clientX - r.left) / r.width) * 100,
-      y: ((e.clientY - r.top) / r.height) * 100,
-    })
-  }
-
+  const reduce = useReducedMotion()
   return (
-    <div
-      ref={ref}
-      onMouseMove={onMove}
-      className={cn('relative overflow-hidden rounded-2xl', className)}
-    >
-      <div
-        className="pointer-events-none absolute -inset-px rounded-2xl opacity-100 transition-opacity duration-500"
+    <section className={cn('relative overflow-hidden rounded-3xl studio-card', className)}>
+      {/* Aperture motif */}
+      <motion.div
+        aria-hidden
+        className="absolute right-6 top-6 grid size-14 place-items-center rounded-full text-[10px] font-bold uppercase tracking-[0.18em] text-white"
         style={{
-          background: `radial-gradient(600px circle at ${pos.x}% ${pos.y}%, rgb(219 234 254 / 0.55), transparent 45%)`,
+          background:
+            'conic-gradient(from 0deg, #be185d, #9d174d 30%, #1c1917 60%, #be185d 100%)',
+          boxShadow: '0 6px 18px -8px rgba(190, 24, 93, 0.6), inset 0 1px 0 rgba(255,255,255,0.18)',
         }}
-      />
-      <div className="relative">{children}</div>
-    </div>
+        animate={reduce ? undefined : { rotate: 360 }}
+        transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+      >
+        <span style={{ transform: 'rotate(-180deg)' }} className="font-light">f/2.8</span>
+      </motion.div>
+      <div className="relative pr-20">{children}</div>
+    </section>
+  )
+}
+
+/** Polaroid frame for image previews. */
+export function Polaroid({
+  caption,
+  tilt = 'l',
+  children,
+  className,
+}: {
+  caption?: string
+  tilt?: 'l' | 'r' | 'none'
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <figure
+      className={cn(
+        'polaroid',
+        tilt === 'l' ? 'polaroid--tilt-l' : tilt === 'r' ? 'polaroid--tilt-r' : '',
+        className,
+      )}
+    >
+      {children}
+      {caption ? (
+        <figcaption className="mt-2 text-center text-xs italic text-[var(--color-warm-ink-soft)]">
+          {caption}
+        </figcaption>
+      ) : null}
+    </figure>
   )
 }

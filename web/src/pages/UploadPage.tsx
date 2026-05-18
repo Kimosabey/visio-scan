@@ -82,17 +82,22 @@ export function UploadPage() {
   return (
     <div className="relative min-h-screen">
       <GridBackground />
-      <header className="border-b border-zinc-200/80 bg-white/80 backdrop-blur-md">
+      <header
+        className="border-b border-[var(--color-cream-edge)] bg-[#fffdf8]/85 backdrop-blur-md"
+        role="banner"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-amber-600 text-white shadow-sm">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-[var(--color-rose-deep)] text-white shadow-sm aperture-pulse">
               <Camera className="size-5" aria-hidden />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                SelfAware®
+              <p className="mono text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-rose-deep)]">
+                SelfAware® · Studio V
               </p>
-              <h1 className="text-lg font-semibold text-zinc-900">VisioScan</h1>
+              <h1 className="studio-display text-xl font-semibold text-[var(--color-warm-ink)]">
+                VisioScan
+              </h1>
             </div>
           </div>
           <Button variant="outline" size="sm" asChild>
@@ -105,17 +110,17 @@ export function UploadPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl space-y-10 px-4 py-10">
-        <SpotlightHero className="border border-zinc-200/80 bg-white/90 p-6 shadow-sm md:p-8">
-          <div className="space-y-2">
-            <Badge variant="warning">Field ↔ reference</Badge>
-            <h2 className="text-2xl font-semibold tracking-tight text-zinc-900 md:text-3xl">
-              Upload &amp; compare
+      <main id="main" role="main" className="mx-auto max-w-6xl space-y-10 px-4 py-10">
+        <SpotlightHero className="p-6 md:p-9">
+          <div className="space-y-3">
+            <Badge variant="warning">Field ↔ golden reference</Badge>
+            <h2 className="studio-display text-3xl font-semibold tracking-tight text-[var(--color-warm-ink)] md:text-4xl">
+              Compare-and-critique studio
             </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-zinc-600">
-              Multipart upload to <code className="rounded bg-zinc-100 px-1">POST /v1/analyze</code>.
-              Images can route to Ollama vision when configured; discrepancies list remains
-              deterministic stub until your CV rules land.
+            <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-warm-ink-soft)]">
+              Multipart upload to <code className="mono rounded bg-stone-100 px-1">POST /v1/analyze</code>.
+              When <code className="mono rounded bg-stone-100 px-1">OLLAMA_BASE_URL</code> is set, images
+              route to a local vision model for as-built vs design diffing.
             </p>
           </div>
         </SpotlightHero>

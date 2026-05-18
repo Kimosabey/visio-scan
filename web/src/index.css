@@ -1,12 +1,99 @@
 @import "tailwindcss";
 
+/* === VisioScan — Light Studio ===
+   Palette: magenta-rose + warm gray on warm ivory. Studio darkroom feel.
+   Typography: Fraunces editorial display + Inter UI + Mono for codes.
+*/
+
+@theme {
+  --color-rose: #be185d;
+  --color-rose-deep: #9d174d;
+  --color-rose-soft: #fce7f3;
+  --color-warm-ink: #1c1917;
+  --color-warm-ink-soft: #44403c;
+  --color-cream: #fff8f3;
+  --color-cream-edge: #f0e6dc;
+}
+
+:root { color-scheme: light only; }
+
 @layer base {
   html {
-    @apply antialiased text-zinc-900;
+    @apply antialiased;
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-feature-settings: 'tnum' on, 'lnum' on, 'ss01' on;
+    color: var(--color-warm-ink);
   }
   body {
-    @apply min-h-screen bg-zinc-50;
+    @apply min-h-screen;
+    background:
+      radial-gradient(60rem 30rem at 20% -10%, rgba(190, 24, 93, 0.06), transparent 60%),
+      radial-gradient(60rem 30rem at 100% 110%, rgba(180, 83, 9, 0.04), transparent 60%),
+      var(--color-cream);
   }
+  h1, h2, .studio-display {
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
+    font-variation-settings: 'opsz' 96, 'SOFT' 30;
+    letter-spacing: -0.012em;
+  }
+  code, kbd, .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-rose);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 100;
+  background: var(--color-warm-ink);
+  color: var(--color-cream);
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: top 160ms ease-out;
+}
+.skip-link:focus { top: 0.5rem; }
+
+/* Polaroid frame */
+.polaroid {
+  background: #fffdf8;
+  border: 1px solid var(--color-cream-edge);
+  border-radius: 0.625rem;
+  padding: 0.875rem 0.875rem 1.5rem;
+  box-shadow:
+    0 1px 0 rgba(28, 25, 23, 0.04),
+    0 18px 36px -24px rgba(190, 24, 93, 0.25),
+    inset 0 0 0 1px rgba(255,255,255,0.7);
+}
+.polaroid--tilt-l { transform: rotate(-2deg); }
+.polaroid--tilt-r { transform: rotate(1.4deg); }
+
+/* Studio card */
+.studio-card {
+  background: white;
+  border: 1px solid var(--color-cream-edge);
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 0 rgba(28, 25, 23, 0.04), 0 18px 36px -28px rgba(190, 24, 93, 0.22);
+}
+
+/* Aperture pulse */
+@keyframes aperture {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+.aperture-pulse { animation: aperture 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .polaroid--tilt-l, .polaroid--tilt-r { transform: none; }
 }
