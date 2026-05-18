@@ -13,6 +13,7 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') },
   },
   server: {
+    host: true,
     proxy: {
       '/v1': { target: api, changeOrigin: true },
       '/health': { target: api, changeOrigin: true },
