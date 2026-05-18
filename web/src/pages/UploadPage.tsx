@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
   Camera,
   ExternalLink,
+  FolderOpen,
   ImageIcon,
   Loader2,
   Rows3,
@@ -26,7 +27,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { postAnalyze, type AnalyzeResponse } from '@/lib/api'
+import { getHealth, postAnalyze, type AnalyzeResponse } from '@/lib/api'
 
 const schema = z.object({
   reference_label: z.string().optional(),
@@ -35,18 +36,25 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 const REFERENCE_PRESETS: { label: string; reference_label: string }[] = [
-  { label: 'SOP figure', reference_label: 'SOP-HVAC-114 Fig A-12 nameplate layout (rev 4)' },
-  { label: 'Wiring diagram', reference_label: 'Single-line LVM-2024-009 Panel L14 feeder (as-built 2023-08)' },
-  { label: 'Nameplate spec', reference_label: 'OEM nameplate model XR-200 nominal FLA 42 A' },
-  { label: 'Commissioning photo', reference_label: 'Cx photo set CT-07 strainer basket orientation' },
-  { label: 'Arc flash label', reference_label: 'NFPA 70E arc-flash label Cat 2 @ 18 in working distance' },
-  { label: 'Label not listed', reference_label: 'Field photo — corroded lug kit; compare to golden template' },
+  { label: 'Chiller nameplate',       reference_label: 'CH-0001b00000 OEM nameplate — rated capacity and refrigerant charge (as-installed)' },
+  { label: 'Condenser pump seal',     reference_label: 'CONDPU-0001b40000 mechanical seal assembly drawing rev 3' },
+  { label: 'Cooling tower basin',     reference_label: 'CT-0001b70000 basin and fill media inspection reference photo' },
+  { label: 'Energy meter wiring',     reference_label: 'EM-0001000000 CT wiring diagram and pulse output terminal layout' },
+  { label: 'BTM panel layout',        reference_label: 'BTM-0001110000 field controller panel layout and I/O map (as-built 2024)' },
+  { label: 'Primary pump coupling',   reference_label: 'PV-0001b20000 flexible coupling alignment reference (golden)' },
 ]
 
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [result, setResult] = useState<AnalyzeResponse | null>(null)
+
+  const healthQuery = useQuery({
+    queryKey: ['visio-scan-health'],
+    queryFn: getHealth,
+    refetchInterval: 30_000,
+    retry: 2,
+  })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -100,13 +108,33 @@ export function UploadPage() {
               </h1>
             </div>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/docs" target="_blank" rel="noreferrer">
-              <BookOpen className="size-4" />
-              OpenAPI
-              <ExternalLink className="size-3 opacity-60" />
-            </a>
-          </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {healthQuery.isPending ? (
+              <Badge variant="outline" className="gap-1">
+                <Loader2 className="size-3 animate-spin" aria-hidden />
+                <span aria-live="polite">Checking API…</span>
+              </Badge>
+            ) : healthQuery.isError ? (
+              <Badge variant="danger" title={(healthQuery.error as Error).message}>
+                API unreachable
+              </Badge>
+            ) : (
+              <>
+                <Badge variant="info" className="gap-1" title={healthQuery.data.references_dir}>
+                  <FolderOpen className="size-3" aria-hidden />
+                  References
+                </Badge>
+                <Badge variant="outline">API OK · :{healthQuery.data.port}</Badge>
+              </>
+            )}
+            <Button variant="outline" size="sm" asChild>
+              <a href="/docs" target="_blank" rel="noreferrer">
+                <BookOpen className="size-4" />
+                OpenAPI
+                <ExternalLink className="size-3 opacity-60" />
+              </a>
+            </Button>
+          </div>
         </div>
       </header>
 
