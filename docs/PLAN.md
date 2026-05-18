@@ -21,8 +21,8 @@
 
 ## Current status
 
-- FastAPI scaffold + `/health` live.
-- **`web/`** and vision API **not started**.
+- **`POST /v1/analyze`** — image uploads; Ollama vision with **JSON discrepancy** parsing; optional second image from `references/` when `reference_label` matches a safe basename. **No hard-coded stub discrepancies.**
+- **`web/`** — upload + analysis UI.
 
 ## Ops
 
