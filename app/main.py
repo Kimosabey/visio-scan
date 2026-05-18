@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import uuid
 from pathlib import Path
 
@@ -22,6 +23,12 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 _cors = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 ALLOW_ORIGINS = [o.strip() for o in _cors.split(",") if o.strip()]
+ALLOW_ORIGIN_REGEX = os.getenv(
+    "CORS_ORIGIN_REGEX",
+    r"^http://(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|"
+    r"192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|"
+    r"\[::1\])(:\d+)?$",
+)
 
 app = FastAPI(
     title="VisioScan",
@@ -32,6 +39,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOW_ORIGINS,
+    allow_origin_regex=ALLOW_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,6 +137,72 @@ async def _ollama_vision(images_b64: list[str], prompt: str) -> str | None:
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "service": SERVICE_SLUG, "port": PORT, "references_dir": str(REFS_ROOT)}
+
+
+IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff"}
+
+
+@app.get("/v1/library")
+def library(limit: int = 100) -> dict:
+    """List reference images currently on disk under REFS_ROOT."""
+    REFS_ROOT.mkdir(parents=True, exist_ok=True)
+    limit = max(1, min(int(limit or 100), 1000))
+    items: list[dict] = []
+    for p in sorted(REFS_ROOT.iterdir()):
+        if not p.is_file() or p.suffix.lower() not in IMAGE_EXTS:
+            continue
+        st = p.stat()
+        items.append(
+            {
+                "name": p.name,
+                "size": int(st.st_size),
+                "mtime": st.st_mtime,
+                "ext": p.suffix.lower(),
+                "url": f"/v1/library/file/{p.name}",
+            }
+        )
+        if len(items) >= limit:
+            break
+    return {"count": len(items), "root": str(REFS_ROOT), "items": items}
+
+
+@app.get("/v1/library/file/{name}")
+def library_file(name: str):
+    from fastapi.responses import FileResponse
+
+    p = _safe_reference_path(name)
+    if not p:
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(p)
+
+
+@app.post("/v1/index")
+async def index_upload(file: UploadFile = File(...), name: str | None = Form(None)) -> dict:
+    """Store a reference image under REFS_ROOT for later compare-and-critique."""
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Empty file")
+    ct = (file.content_type or "").lower()
+    fname = (name or file.filename or "").strip()
+    if not fname:
+        raise HTTPException(status_code=400, detail="Missing target name")
+    base = Path(fname).name
+    if not base or base.startswith("."):
+        raise HTTPException(status_code=400, detail="Invalid name")
+    ext = Path(base).suffix.lower()
+    if ext not in IMAGE_EXTS:
+        if ct.startswith("image/"):
+            base = base + ".png"
+        else:
+            raise HTTPException(status_code=400, detail=f"Only image files: {sorted(IMAGE_EXTS)}")
+    REFS_ROOT.mkdir(parents=True, exist_ok=True)
+    target = (REFS_ROOT / Path(base).name).resolve()
+    try:
+        target.relative_to(REFS_ROOT.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Path escape rejected") from None
+    target.write_bytes(raw)
+    return {"name": target.name, "bytes": len(raw), "path": str(target)}
 
 
 @app.post("/v1/analyze", response_model=AnalyzeResponse)
