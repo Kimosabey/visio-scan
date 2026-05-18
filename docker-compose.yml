@@ -1,0 +1,7 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8105:8105"
+    environment:
+      PORT: "8105"
