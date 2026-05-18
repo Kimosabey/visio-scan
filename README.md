@@ -1,6 +1,30 @@
-# VisioScan
+<p align="center">
+  <img src="docs/img/banner.svg" alt="VisioScan — Light Studio" width="100%" />
+</p>
 
-**Vision / multimodal** — upload an **image** (or exported **PDF** page as an image workflow) via **multipart** `POST /v1/analyze`. The API returns a **summary**, **discrepancy** rows (stub), and optional **`vision_notes`** when **`OLLAMA_BASE_URL`** is set and `content-type` is `image/*` (calls Ollama **`/api/generate`** with **base64 image** and `VISION_MODEL`). The **web** UI shows **reference** placeholder panel, **field** preview, and analysis + discrepancy list.
+# VisioScan · Light Studio
+
+> **Vision / multimodal** — upload an **image** via **multipart** `POST /v1/analyze`. The API returns a **summary**, **discrepancy** rows, and optional **`vision_notes`** when **`OLLAMA_BASE_URL`** is set and `content-type` is `image/*` (calls Ollama **`/api/generate`** with **base64 image** and `VISION_MODEL`). A reference image library lives on disk and is exposed via `GET /v1/library` and `POST /v1/index`.
+
+| Spec | Value |
+|---|---|
+| **Theme** | Light Studio — magenta-rose + warm cream, Fraunces + JetBrains Mono |
+| **Port** | `:8105` |
+| **Stack** | FastAPI · python-multipart · httpx · Vite · React 19 · Tailwind 4 |
+
+### Quick links
+[API.md](docs/API.md) · [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [PLAN.md](docs/PLAN.md) · [TESTING.md](docs/TESTING.md) · [UI.md](docs/UI.md) · [CHANGELOG.md](docs/CHANGELOG.md) · [SCREENSHOTS.md](docs/SCREENSHOTS.md) · [Suite — Ports & URLs](../docs/PORTS_AND_URLS.md)
+
+### Open these to test
+
+| What | Localhost | LAN |
+|---|---|---|
+| Swagger | http://127.0.0.1:8105/docs | http://&lt;LAN_IP&gt;:8105/docs |
+| Health | http://127.0.0.1:8105/health | http://&lt;LAN_IP&gt;:8105/health |
+| Library list | http://127.0.0.1:8105/v1/library | http://&lt;LAN_IP&gt;:8105/v1/library |
+| UI | http://localhost:5173 | http://&lt;LAN_IP&gt;:5173 |
+
+
 
 | | |
 |--|--|
